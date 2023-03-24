@@ -32,9 +32,7 @@ fn main() {
     }
 
     if push_file_regex.is_match(infile) {
-        let program = compiler::compile(&compiler::lex(
-            std::fs::read_to_string(infile).unwrap().as_str()
-        ));
+        let program = compiler::compile(std::fs::read_to_string(infile).unwrap().as_str());
         
         if compile {
             std::fs::write(outfile, &program).unwrap();

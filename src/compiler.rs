@@ -29,7 +29,7 @@ pub enum Instruction {
 }
 
 
-pub fn lex(input: &str) -> Vec<OP> {
+fn lex(input: &str) -> Vec<OP> {
     let mut program = Vec::<OP>::new();
 
     let mut functions = HashSet::new();
@@ -56,7 +56,9 @@ pub fn lex(input: &str) -> Vec<OP> {
     return program;
 }
 
-pub fn compile(program: &Vec<OP>) -> Vec<u8> {   
+pub fn compile(program: &str) -> Vec<u8> {   
+    let program = lex(program);
+    
     let mut binary = Cursor::new(Vec::<u8>::new());
     binary.write_u64::<LittleEndian>(8).unwrap();
     
@@ -65,13 +67,13 @@ pub fn compile(program: &Vec<OP>) -> Vec<u8> {
     functions.insert("alloc", 1);
     functions.insert("write",2);
 
-    let mut cross_ref_stack = Vec::<(&OP, u64)>::new();
+    let mut cross_ref_stack = Vec::<(OP, u64)>::new();
 
     for op in program {
         match op {
             OP::Push(n) => {
                 binary.write_u8(Instruction::Push as u8).unwrap();
-                binary.write_i64::<LittleEndian>(*n).unwrap();
+                binary.write_i64::<LittleEndian>(n).unwrap();
             },
             OP::Dup => binary.write_u8(Instruction::Dup as u8).unwrap(),
             OP::Over => binary.write_u8(Instruction::Over as u8).unwrap(),
