@@ -1,0 +1,8 @@
+[package]
+name = "push_script"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+byteorder = "1.4.3"
+regex = "1.7.2"
