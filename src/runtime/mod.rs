@@ -47,10 +47,15 @@ pub fn run(program: &Vec<u8>) -> Result<(), ()> {
                 match binary.read_u64::<LittleEndian>().unwrap() {
                     0x00 => stdlib::putd(stack.pop().unwrap()),
                     0x01 => {
+                        let address = stack.pop().unwrap() as usize;
+                        let size = stack.pop().unwrap() as usize;
+                        stdlib::puts(&String::from_utf8_lossy(&memory[address..address+size]));
+                    },
+                    0x02 => {
                         let address = stdlib::alloc(&mut memory, stack.pop().unwrap() as usize);
                         stack.push(address as i64);
                     },
-                    0x02 => {
+                    0x03 => {
                         let address = stack.pop().unwrap() as usize;
                         let size = stack.pop().unwrap() as usize;
                         stdlib::write(&memory[address..address+size]);

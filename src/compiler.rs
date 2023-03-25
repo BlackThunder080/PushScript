@@ -40,8 +40,9 @@ pub fn compile(program: &str) -> Vec<u8> {
 
     let mut functions = HashMap::<&str, u64>::new();
     functions.insert("putd", 0);
-    functions.insert("alloc", 1);
-    functions.insert("write",2);
+    functions.insert("puts", 1);
+    functions.insert("alloc", 2);
+    functions.insert("write",3);
 
     // =====================[ Offset Table ]=======================
     /* Code Offset */ binary.write_u64::<LittleEndian>(16).unwrap();    
@@ -135,6 +136,7 @@ fn lex(input: &str) -> Vec<OP> {
 
     let mut functions = HashSet::new();
     functions.insert("putd");
+    functions.insert("puts");
     functions.insert("alloc");
     functions.insert("write");
 

@@ -4,6 +4,10 @@ pub fn putd(n: i64) {
     println!("{n}");
 }
 
+pub fn puts(s: &str) {
+    println!("{s}");
+}
+
 pub fn alloc(heap: &mut Vec::<u8>, size: usize) -> u64 {
     let address = heap.len();
     heap.resize(heap.len() + size, 0);
