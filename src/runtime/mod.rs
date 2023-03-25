@@ -1,4 +1,4 @@
-use std::io::Cursor;
+use std::io::{Cursor, Write};
 use byteorder::{ReadBytesExt, LittleEndian};
 
 mod stdlib;
@@ -12,6 +12,9 @@ pub fn run(program: &Vec<u8>) -> Result<(), ()> {
 
     let mut binary = Cursor::new(program);
     let code_offset = binary.read_u64::<LittleEndian>().unwrap();
+    let data_offset = binary.read_u64::<LittleEndian>().unwrap();
+    binary.set_position(data_offset);
+    memory.write_all(&program[(binary.position() as usize)..program.len()]).unwrap();
     binary.set_position(code_offset);
 
     loop {

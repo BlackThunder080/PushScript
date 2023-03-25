@@ -1,18 +1,1 @@
-14 dup alloc
-
-72  over 0  + !
-101 over 1  + !
-108 over 2  + !
-108 over 3  + !
-111 over 4  + !
-32  over 5  + !
-87  over 6  + !
-111 over 7  + !
-114 over 8  + !
-108 over 9  + !
-100 over 10 + !
-33  over 11 + !
-13  over 12 + !
-10  over 13 + !
-
-write
+"Hello World!" write
