@@ -1,16 +1,21 @@
 use std::{io::{Cursor, Write}, collections::{HashMap, HashSet}};
 use byteorder::{WriteBytesExt, LittleEndian};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum OP {
     Push(i64),
     PushStr(String),
     Dup,
+    Swap,
     Over,
     Add,
+    Sub,
     Equal,
+    Greater,
     If,
     Else,
+    While,
+    Do,
     End,
     Call(String),
     Poke,
@@ -20,10 +25,13 @@ pub enum OP {
 pub enum Instruction {
     Push = 0x01,
     Dup,
+    Swap,
     Over,
     Add,
+    Sub,
     Equal,
-    If,
+    Greater,
+    Branch,
     Jump,
     Call,
     Poke,
@@ -63,11 +71,14 @@ pub fn compile(program: &str) -> Vec<u8> {
                 data.append(&mut Vec::from(string.as_bytes()));
             }
             OP::Dup => binary.write_u8(Instruction::Dup as u8).unwrap(),
+            OP::Swap => binary.write_u8(Instruction::Swap as u8).unwrap(),
             OP::Over => binary.write_u8(Instruction::Over as u8).unwrap(),
             OP::Add => binary.write_u8(Instruction::Add as u8).unwrap(),
+            OP::Sub => binary.write_u8(Instruction::Sub as u8).unwrap(),
             OP::Equal => binary.write_u8(Instruction::Equal as u8).unwrap(),
+            OP::Greater => binary.write_u8(Instruction::Greater as u8).unwrap(),
             OP::If => {
-                binary.write_u8(Instruction::If as u8).unwrap();
+                binary.write_u8(Instruction::Branch as u8).unwrap();
                 cross_ref_stack.push((op, binary.position()));
                 binary.write_u64::<LittleEndian>(0).unwrap();
             },
@@ -88,6 +99,14 @@ pub fn compile(program: &str) -> Vec<u8> {
                     _ => todo!("else has to follow if"),
                 }
             }
+            OP::While => {
+                cross_ref_stack.push((op, binary.position()));
+            },
+            OP::Do => {
+                binary.write_u8(Instruction::Branch as u8).unwrap();
+                cross_ref_stack.push((op, binary.position()));
+                binary.write_u64::<LittleEndian>(0).unwrap();
+            },
             OP::End => {
                 let start = cross_ref_stack.pop().unwrap();
                 match start {
@@ -102,7 +121,20 @@ pub fn compile(program: &str) -> Vec<u8> {
                         binary.set_position(pos);
                         binary.write_u64::<LittleEndian>(ret).unwrap();
                         binary.set_position(ret);
-                    }
+                    },
+                    (OP::Do, pos) => {
+                        let _while = cross_ref_stack.pop().unwrap();
+                        assert!(_while.0 == OP::While);
+                        let while_pos = _while.1;
+
+                        binary.write_u8(Instruction::Jump as u8).unwrap();
+                        binary.write_u64::<LittleEndian>(while_pos).unwrap();
+
+                        let ret = binary.position();
+                        binary.set_position(pos);
+                        binary.write_u64::<LittleEndian>(ret).unwrap();
+                        binary.set_position(ret);
+                    },
                     _ => todo!(),
                 }
             },
@@ -184,11 +216,16 @@ fn lex(input: &str) -> Vec<OP> {
 fn lex_word(word: &str, functions: &HashSet<&str>) -> OP {
     match word {
         "dup"   =>  OP::Dup,
+        "swap"  =>  OP::Swap,
         "over"  =>  OP::Over,
         "+"     =>  OP::Add,
+        "-"     =>  OP::Sub,
         "="     =>  OP::Equal,
+        ">"     =>  OP::Greater,
         "if"    =>  OP::If,
         "else"  =>  OP::Else,
+        "while" =>  OP::While,
+        "do"    =>  OP::Do,
         "end"   =>  OP::End,
         "!"     =>  OP::Poke,
         tok if word.parse::<u64>().is_ok() => OP::Push(tok.parse::<i64>().unwrap()),

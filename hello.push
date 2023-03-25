@@ -1,1 +1,4 @@
-"Hello World!" puts
+3 while 0 over > do
+    "Hello World!" puts
+    1 swap -
+end

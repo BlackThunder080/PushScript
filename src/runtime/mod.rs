@@ -22,18 +22,34 @@ pub fn run(program: &Vec<u8>) -> Result<(), ()> {
         match op {
             x if x == Instruction::Push as u8 => stack.push(binary.read_i64::<LittleEndian>().unwrap()),
             x if x == Instruction::Dup as u8 => stack.push(stack[stack.len() - 1]),
+            x if x == Instruction::Swap as u8 => {
+                let a = stack.pop().unwrap();
+                let b = stack.pop().unwrap();
+                stack.push(a);
+                stack.push(b);
+            },
             x if x == Instruction::Over as u8 => stack.push(stack[stack.len() - 2]),
             x if x == Instruction::Add as u8 => {
                 let a = stack.pop().unwrap();
                 let b = stack.pop().unwrap();
                 stack.push(a + b);
             },
+            x if x == Instruction::Sub as u8 => {
+                let a = stack.pop().unwrap();
+                let b = stack.pop().unwrap();
+                stack.push(a - b);
+            },
             x if x == Instruction::Equal as u8 => {
                 let a = stack.pop().unwrap();
                 let b = stack.pop().unwrap();
                 stack.push((a == b) as i64);
             },
-            x if x == Instruction::If as u8 => {
+            x if x == Instruction::Greater as u8 => {
+                let a = stack.pop().unwrap();
+                let b = stack.pop().unwrap();
+                stack.push((a > b) as i64);
+            },
+            x if x == Instruction::Branch as u8 => {
                 let jump = binary.read_u64::<LittleEndian>().unwrap();
                 if stack.pop().unwrap() == 0 {
                     binary.set_position(jump);
